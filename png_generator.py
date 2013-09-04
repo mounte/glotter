@@ -53,7 +53,7 @@ class RSettings(object):
     def useGrid(self):
         return self._rs['grid']
 
-def getDataView(settings, xdata, ydata, sequenceparts=100)
+def getDataView(settings, xdata, ydata, sequenceparts=100):
     if not settings.useSequence():
         return xdata, ydata
     else:
@@ -81,12 +81,11 @@ def main():
     if not os.path.exists(s.getCacheFilename()):
         data = np.loadtxt(s.getDataFile(), delimiter=";")
         xdata = data[:,0]
-
         ydata = data[:,s.getVariableId()]
 
-        sequences = 100
-        sequence = rs['seq']
-        useseq = True if sequence >= 0 else False
+        #sequences = 100
+        #sequence = rs['seq']
+        #useseq = True if sequence >= 0 else False
 
         #dlen = len(ydata)
         #start = dlen/sequences*sequence
