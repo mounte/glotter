@@ -1,96 +1,140 @@
 #!/usr/bin/env python
 import cgi
 import cgitb
-cgitb.enable()
-
-form = cgi.FieldStorage()
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-import cStringIO
-import sys
 import os
 
 import json
 import hashlib
 
-dfile = ['/home/daniel/temperature.csv', '/home/daniel/cutting_force.csv']
-cachedir = '/home/daniel/pngcache'
 
-format = 'png'
 
-print "Content-Type: text/html\n"
+class RSettings(object):
+    def __init__(self, cachedir='/tmp', datafiles=[]):
+        self._rs = {'dataset':0, 'variable': 1, 'seq': -1, 'grid': 0}
+        self._cachedir = cachedir
+        self._datafiles = datafiles
+    def parseJson(self, jsons):
+        """
+        Parses json data into the settings object.
+        Fallback to default values if failed
+        :param data:
+        """
+        try:
+            rs = json.loads(jsons)
+            self._rs.update(rs["RSettings"])
+        except (ValueError, AttributeError, KeyError):
+            pass
 
-try:
-#    print form.keys()
-#    print form['
-    jsons = form["RSettings"].value
-    rs = json.loads(jsons)
-    rs = rs["RSettings"]
+    def getHash(self):
+        hash_src = "RSETTINGS:%s:%s:%s:%s" % (self._rs['dataset'],
+                                              self._rs['variable'],
+                                              self._rs['seq'],
+                                              int(self._rs['grid']))
+        return hashlib.sha1(hash_src).hexdigest()
 
-except (ValueError, AttributeError, KeyError):
-    rs = {'dataset':0, 'variable': 1, 'seq': -1, 'grid': 0}
-    pass
+    def getCacheFilename(self):
+        return os.path.join(self._cachedir, "%s.png"% self.getHash())
 
-hash_src = "RSETTINGS:%s:%s:%s:%s" % (rs['dataset'], rs['variable'], rs['seq'], int(rs['grid']))
-hdigest = hashlib.sha1(hash_src).hexdigest()
+    def getDataFile(self):
+        return self._datafiles[self._rs['dataset']]
 
-cachefile = os.path.join(cachedir, "%s.png"%hdigest)
-if not os.path.exists(cachefile):
-    data = np.loadtxt(dfile[rs['dataset']], delimiter=";")
-    t = data[:,0]
+    def getVariableId(self):
+        return self._rs['variable']
 
-    idx = rs['variable']
-    tdata = data[:,idx]
+    def useSequence(self):
+        return self._rs['seq'] > -1
 
-    sequences = 100
-    sequence = rs['seq']
-    useseq = True if sequence >= 0 else False
+    def getSequence(self):
+        return self._rs['seq']
 
-    dlen = len(tdata)
-    start = dlen/sequences*sequence
-    stop = start+dlen/sequences
-    bottom = np.min(tdata)
-    top = np.max(tdata)
+    def useGrid(self):
+        return self._rs['grid']
 
-    if useseq:
-        view_data = tdata[start:stop]
-        t = t[start:stop]
+def getDataView(settings, xdata, ydata, sequenceparts=100)
+    if not settings.useSequence():
+        return xdata, ydata
     else:
-        view_data = tdata
-    fig_w = 20
-    fig_h = 2
+        dlen = len(ydata)
+        start = dlen/sequenceparts*settings.getSequence()
+        stop = start+dlen/sequenceparts
 
-    try:
-        fig_w = int(form['width'].value)
-    except (ValueError, AttributeError, KeyError):
-        pass
+        return xdata[start:stop], ydata[start:stop]
 
-    try:
-        fig_h = int(form['height'].value)
-    except (ValueError, AttributeError, KeyError):
-        pass
+def main():
+    """
+    Main routine that uses some hardcoded values to load data from and where to store cache files
+    Runs the cgi-service and outputs a png as a result
+    """
+    dfile = ['/home/daniel/temperature.csv', '/home/daniel/cutting_force.csv']
+    cachedir = '/home/daniel/pngcache'
 
+    cgitb.enable()
+    form = cgi.FieldStorage()
 
-    use_axis=rs['grid']
-
-    fig = plt.figure(tight_layout=False)
-    fig.set_size_inches( fig_w, fig_h )
-    ax = fig.add_subplot(111)
-    ax.set_ylim([bottom, top])
-    if not use_axis:
-        ax.set_axis_off();
-
-    dcolor = (0.0, 0.0, 0.0, 1.0)
-
-    ax.plot(t, view_data, color=dcolor)
-    
-    #sio = cStringIO.StringIO()
-    ofile = open(cachefile, 'wb')
-    fig.savefig( ofile, transparent=True, dpi=100 , format=format)
-    ofile.close()
+    s = RSettings(cachedir, dfile)
+    s.parseJson(form["RSettings"].value)
 
 
-print file(cachefile, "rb").read().encode("base64").strip()
+    if not os.path.exists(s.getCacheFilename()):
+        data = np.loadtxt(s.getDataFile(), delimiter=";")
+        xdata = data[:,0]
 
+        ydata = data[:,s.getVariableId()]
+
+        sequences = 100
+        sequence = rs['seq']
+        useseq = True if sequence >= 0 else False
+
+        #dlen = len(ydata)
+        #start = dlen/sequences*sequence
+        #stop = start+dlen/sequences
+        bottom = np.min(ydata)
+        top = np.max(ydata)
+
+        #if useseq:
+        #    view_data = ydata[start:stop]
+        #    xdata = xdata[start:stop]
+        #else:
+        #    view_data = ydata
+
+        viewx, viewy = getDataView(s, xdata, ydata)
+
+        fig_w = 20
+        fig_h = 2
+
+        #try:
+        #    fig_w = int(form['width'].value)
+        #except (ValueError, AttributeError, KeyError):
+        #    pass
+
+        #try:
+        #    fig_h = int(form['height'].value)
+        #except (ValueError, AttributeError, KeyError):
+        #    pass
+
+
+        #use_axis=rs['grid']
+
+        #fig = plt.figure(tight_layout=False)
+        fig = plt.figure(tight_layout=True)
+        fig.set_size_inches( fig_w, fig_h )
+        ax = fig.add_subplot(111)
+        ax.set_ylim([bottom, top])
+
+        if not s.useGrid():
+            ax.set_axis_off();
+
+        ax.plot(viewx, viewy, 'k-')
+
+        ofile = open(s.getCacheFilename(), 'wb')
+        fig.savefig( ofile, transparent=True, dpi=100 , format="png")
+        ofile.close()
+
+    #Output header and the png data base64 coded
+    print "Content-Type: text/html\n"
+    print file(s.getCacheFilename(), "rb").read().encode("base64").strip()
+
+main()
