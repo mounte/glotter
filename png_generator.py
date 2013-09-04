@@ -9,8 +9,6 @@ import os
 import json
 import hashlib
 
-
-
 class RSettings(object):
     def __init__(self, cachedir='/tmp', datafiles=[]):
         self._rs = {'dataset':0, 'variable': 1, 'seq': -1, 'grid': 0}
@@ -83,27 +81,15 @@ def main():
         xdata = data[:,0]
         ydata = data[:,s.getVariableId()]
 
-        #sequences = 100
-        #sequence = rs['seq']
-        #useseq = True if sequence >= 0 else False
-
-        #dlen = len(ydata)
-        #start = dlen/sequences*sequence
-        #stop = start+dlen/sequences
         bottom = np.min(ydata)
         top = np.max(ydata)
-
-        #if useseq:
-        #    view_data = ydata[start:stop]
-        #    xdata = xdata[start:stop]
-        #else:
-        #    view_data = ydata
 
         viewx, viewy = getDataView(s, xdata, ydata)
 
         fig_w = 20
         fig_h = 2
 
+        #TODO: Add these as settings in the RSettings class and reflect changes to the hash and the javascript
         #try:
         #    fig_w = int(form['width'].value)
         #except (ValueError, AttributeError, KeyError):
@@ -114,11 +100,8 @@ def main():
         #except (ValueError, AttributeError, KeyError):
         #    pass
 
-
-        #use_axis=rs['grid']
-
-        #fig = plt.figure(tight_layout=False)
-        fig = plt.figure(tight_layout=True)
+        #Set up the figure to plot to
+        fig = plt.figure()
         fig.set_size_inches( fig_w, fig_h )
         ax = fig.add_subplot(111)
         ax.set_ylim([bottom, top])
@@ -128,9 +111,7 @@ def main():
 
         ax.plot(viewx, viewy, 'k-')
 
-        ofile = open(s.getCacheFilename(), 'wb')
-        fig.savefig( ofile, transparent=True, dpi=100 , format="png")
-        ofile.close()
+        fig.savefig(s.getCacheFilename(), transparent=True, dpi=100 , format="png")
 
     #Output header and the png data base64 coded
     print "Content-Type: text/html\n"
