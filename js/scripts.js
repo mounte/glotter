@@ -46,9 +46,22 @@ RSettings.prototype.toHash = function() {
     return Sha1.hash(src);
 }
 
-var img;
 
+
+var img;
 $(function() {
+  sel_dataset = datasets[0];
+  sel_variable = datasets[0].variables[0];
+
+  $('#d-seq-num').spinit({ 
+    min: 0,
+    initValue: 0,
+    max: 100,
+    callback: function(v){
+      sel_seq = v;
+      updateGraph();},
+    mask: 'Sequence Number' });
+
   $('#colorpicker').colorpicker().on('changeColor', function(ev){
     sel_color = ev.color.toRGB();
       playwithme();
@@ -67,8 +80,7 @@ $(function() {
         text : value.name 
     }));
   });
-  sel_dataset = datasets[0];
-  sel_variable = datasets[0].variables[0];
+
   
   $('#d-dataset').change( function(){
     sel_dataset = datasets[$( "#d-dataset option:selected" ).val()];
@@ -149,19 +161,13 @@ $(function() {
   $("#d-all-seq").change(function() {
     sel_usesequence = this.checked;
     if (!sel_usesequence) {
-      $("#d-seq").show();
+      $("#d-seq-num").show();
       sel_seq = sel_seq_tmp;
     } else {
-      $("#d-seq").hide();
+      $("#d-seq-num").hide();
       sel_seq_tmp = sel_seq;
       sel_seq = -1;
     }
-      updateGraph();
-  });
-
-  $("#d-seq").on( "sliderchange", function(e,result){
-    var v = Math.floor(result.value);
-    sel_seq = v;
       updateGraph();
   });
 
