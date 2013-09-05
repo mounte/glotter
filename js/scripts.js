@@ -21,7 +21,7 @@ function RSettings(dataset, variable, color, grid, seq) {
     this.dataset = typeof this.dataset !== 'undefined' ? this.dataset : datasets[0];
     this.variable = typeof this.variable !== 'undefined' ? this.variable : datasets[0].variables[0];
     this.color = typeof this.color !== 'undefined' ? this.color : {"r": 0, "g": 0, "b": 0, "a": 1};
-    this.grid = typeof this.grid !== 'undefined' ? this.grid : true;
+    this.grid = typeof this.grid !== 'undefined' ? this.grid : false;
     this.seq = typeof this.seq !== 'undefined' ? this.seq : -1;
 };
 
