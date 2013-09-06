@@ -24,26 +24,37 @@ function RSettings(dataset, variable, color, grid, seq) {
     this.seq = typeof this.seq !== 'undefined' ? this.seq : -1;
 };
 
+/*
+* Generate JSON-representation of parameters.
+* */
 RSettings.prototype.toJson = function () {
     return JSON.stringify(this.getParams());
 }
 
+/*
+* Pick the parameters relevant for the server side
+* */
 RSettings.prototype.getParams = function () {
     var dto = { RSettings: {
         dataset: this.dataset.id,
         variable: this.variable.id,
-        color: this.color,
         grid: this.grid,
         seq: this.seq
     }};
     return dto;
 }
 
+/*
+* Hash the string containing same things as the server-side python script hashes
+* */
 RSettings.prototype.toHash = function () {
     var src = "RSETTINGS:" + this.dataset.id + ":" + this.variable.id + ":" + this.seq + ":" + Number(this.grid);
     return Sha1.hash(src);
 }
 
+/*
+* Keep the sequence number when toggled to whole sequence and back
+* */
 RSettings.prototype.toggleSeq = function (enabled) {
     if (!enabled) {
         this.tmp_seq = this.seq;
