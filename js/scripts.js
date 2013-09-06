@@ -1,6 +1,9 @@
 var cache_store = {};
 var ss = new RSettings();
 
+/*
+* Initialize the application, set up spin-edit and colorpicker.
+* */
 function init_app() {
     $('#d-seq-num').spinit({
         min: 0,
@@ -18,23 +21,35 @@ function init_app() {
     });
 }
 
-function setOptions(selector, arraydata) {
-    var el = $(selector);
-    el.empty();
+/*
+* Function that empties the element and add an option for every item in arraydata
+* each item should have the property "name" set.
+* */
+function setOptions(element, arraydata) {
+
+    element.empty();
     $.each(arraydata, function (index, value) {
-        el.append($('<option>', {
+        element.append($('<option>', {
             value: index,
             text: value.name
         }));
     });
 }
 
+/*
+* Function that changes active dataset to the one with index "id"
+* Updates the variables list and sets the variable property of the settings object
+* */
 function updateVariablesForDataset(id) {
-    //sel_variable = sel_dataset.variables[0];
     ss.variable = ss.dataset.variables[0]
     setOptions("#d-variable", datasets[id].variables);
 }
 
+/*
+* Ajax call to the png_generator service. Uses the same hash here as on the server to determine if the requested
+* image already is available.
+* Only fetches image if not in cache
+* */
 function updateGraph() {
     var fhash = ss.toHash();
     if (fhash in cache_store) {
@@ -49,6 +64,13 @@ function updateGraph() {
     }
 }
 
+/*
+* Replace the color of the graph with the user specified color.
+* Since all chart-data should be cached server side it is not feasible to cache all possible color variations
+* The first dataset's has: 2 variables, 100 sequences, 2 options grid or no grid ==> 2*100*2*2 = 800 permutations
+* Adding colors to this we have: 800*255*255*255 = 13.26*10^9 so what we try to do is cache black and transparent
+* images on the server, deliver them to the client and let the client update the color (using this method)
+* */
 function playwithme() {
     var image = document.getElementById("the-graph");
     var canvas = document.createElement("canvas");
@@ -65,8 +87,7 @@ function playwithme() {
     var pix = imgd.data;
 
     for (var I = 0, L = pix.length; I < L; I += 4) {
-        if (pix[I + 3] > 0) // If it's not a transparent pixel, modify
-        {
+        if (pix[I + 3] > 0) {
             pix[I] = ss.color.r;
             pix[I + 1] = ss.color.g;
             pix[I + 2] = ss.color.b;
@@ -112,6 +133,5 @@ $(function () {
         ss.toggleSeq(!this.checked)
         updateGraph();
     });
-
 });
 
