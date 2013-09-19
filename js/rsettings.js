@@ -7,6 +7,11 @@ var datasets = [
         {name: "Force Y", id: 2},
         {name: "Force Z", id: 3}
     ], id: 1}
+    {name: "Milling", variables: [
+        {name: "Force X", id: 1},
+        {name: "Force Y", id: 2},
+        {name: "Force Z", id: 3}
+    ], id: 2}
 ];
 
 function RSettings(dataset, variable, color, grid, seq) {
