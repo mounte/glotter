@@ -26,7 +26,6 @@ function init_app() {
 * each item should have the property "name" set.
 * */
 function setOptions(element, arraydata) {
-
     element.empty();
     $.each(arraydata, function (index, value) {
         element.append($('<option>', {
@@ -42,7 +41,7 @@ function setOptions(element, arraydata) {
 * */
 function updateVariablesForDataset(id) {
     ss.variable = ss.dataset.variables[0]
-    setOptions("#d-variable", datasets[id].variables);
+    setOptions($("#d-variable"), datasets[id].variables);
 }
 
 /*
@@ -101,7 +100,7 @@ function playwithme() {
 
 $(function () {
     init_app();
-    setOptions("#d-dataset", datasets)
+    setOptions($('#d-dataset'), datasets)
     updateVariablesForDataset(0);
 
 
