@@ -66,7 +66,7 @@ def main():
     Main routine that uses some hardcoded values to load data from and where to store cache files
     Runs the cgi-service and outputs a png as a result
     """
-    dfile = ['/home/daniel/temperature.csv', '/home/daniel/cutting_force.csv', '/home/daniel/milling_data.csv']
+    dfile = ['/home/daniel/temperature.csv', '/home/daniel/cutting_force.csv', '/home/daniel/milling_data.csv', '/home/daniel/drill_data.csv']
     cachedir = '/home/daniel/pngcache'
 
     cgitb.enable()
